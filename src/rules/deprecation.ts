@@ -85,8 +85,8 @@ function createRuleForIdentifier(
     }
 
     // - Inside an import
-    const isInsideImport = context
-      .getAncestors()
+    const isInsideImport = context.sourceCode
+      .getAncestors(id)
       .some((anc) => anc.type.includes('Import'));
 
     if (isInsideImport) {
@@ -109,8 +109,11 @@ function createRuleForIdentifier(
   };
 }
 
-function getParent(context: TSESLint.RuleContext<MessageIds, Options>) {
-  const ancestors = context.getAncestors();
+function getParent(
+  context: TSESLint.RuleContext<MessageIds, Options>,
+  node: TSESTree.Node,
+) {
+  const ancestors = context.sourceCode.getAncestors(node);
   return ancestors.length > 0 ? ancestors[ancestors.length - 1] : undefined;
 }
 
@@ -122,7 +125,7 @@ function isDeclaration(
   id: TSESTree.Identifier | TSESTree.JSXIdentifier,
   context: TSESLint.RuleContext<MessageIds, Options>,
 ) {
-  const parent = getParent(context);
+  const parent = getParent(context, id);
 
   switch (parent?.type) {
     case 'TSEnumDeclaration':
@@ -277,7 +280,7 @@ function getCallExpression(
   context: TSESLint.RuleContext<MessageIds, Options>,
   id: TSESTree.Node,
 ): TSESTree.CallExpression | TSESTree.TaggedTemplateExpression | undefined {
-  const ancestors = context.getAncestors();
+  const ancestors = context.sourceCode.getAncestors(id);
   let callee = id;
   let parent =
     ancestors.length > 0 ? ancestors[ancestors.length - 1] : undefined;
